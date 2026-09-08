@@ -40,40 +40,38 @@ terraform apply main.tfplan
 
 The Bastion deployment uses the Standard SKU with tunneling and IP-based connections enabled. The following native-client workflow reaches the private AKS API directly; it does not deploy or require a jumpbox.
 
-Install or update the Azure CLI `aks-preview` extension if needed (`az aks bastion` requires Azure CLI 2.85.0 or later):
+Prerequisites for local access are Azure CLI 2.85.0 or later, the `aks-preview` extension, `kubectl`, and `kubelogin`. Install or update the extension if needed:
 
 ```powershell
 az extension add -n aks-preview --upgrade
 ```
 
-Start the AKS Bastion tunnel. The command opens a subshell with a temporary kubeconfig configured for the tunnel:
+Grant the current signed-in Microsoft Entra user permission to retrieve AKS user credentials and cluster-admin authorization through Azure RBAC for Kubernetes. The script also retrieves the user kubeconfig and runs `kubelogin convert-kubeconfig -l azurecli` so Kubernetes authentication uses the current Azure CLI session instead of device-code login:
 
 ```powershell
-$group = "rg-aks-terraform-avm"
-$cluster = "aksterraformavm"
-$bastion = terraform output -raw bastion_id
-
-az aks bastion tunnel -g $group -n $cluster --admin --bastion $bastion
+./access.ps1
 ```
 
-Run `kubectl` inside that subshell, then enter `exit` to close the tunnel:
+Creating role assignments requires Owner or User Access Administrator permission at the cluster scope or above. Allow several minutes for new assignments to propagate.
+
+Start the AKS Bastion tunnel:
 
 ```powershell
+./connect.ps1
+```
+
+The connection script reads the resource group, cluster name, and Bastion resource ID from Terraform outputs. It opens a child PowerShell using the Azure CLI-authenticated kubeconfig configured for the tunnel. Run `kubectl` inside that shell, then enter `exit` to close the tunnel:
+
+```powershell
+# test connectivity
 kubectl get nodes -o wide
-exit
-```
-
-The `--admin` option is convenient for this sample. For shared or production environments, assign Microsoft Entra groups appropriate Azure Kubernetes Service RBAC roles and omit `--admin`.
-
-## Destroy
-
-```powershell
-terraform destroy
 ```
 
 ## References
 
 - [AKS Azure Verified Module](https://github.com/Azure/terraform-azurerm-avm-res-containerservice-managedcluster)
+- [Module Catelog](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/)
+- [`avm-res-containerservice-managedcluster`](https://registry.terraform.io/modules/Azure/avm-res-containerservice-managedcluster/azurerm/latest)
 - [API Server VNet Integration](https://learn.microsoft.com/azure/aks/api-server-vnet-integration)
 - [Azure CNI powered by Cilium](https://learn.microsoft.com/azure/aks/azure-cni-powered-by-cilium)
 - [Connect to a private AKS cluster with Azure Bastion](https://learn.microsoft.com/azure/bastion/bastion-connect-to-aks-private-cluster)

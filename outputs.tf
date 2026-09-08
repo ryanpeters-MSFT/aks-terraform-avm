@@ -1,6 +1,6 @@
 output "group" {
   description = "Name of the resource group."
-  value       = azurerm_resource_group.this.name
+  value       = azurerm_resource_group.aks.name
 }
 
 output "cluster_name" {
@@ -20,5 +20,5 @@ output "private_fqdn" {
 
 output "bastion_id" {
   description = "Resource ID of the Azure Bastion host used by az aks bastion."
-  value       = azurerm_bastion_host.this.id
+  value       = azurerm_bastion_host.aks.id
 }

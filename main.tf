@@ -1,37 +1,28 @@
-locals {
-  location    = "centralus"
-  group       = "rg-aks-terraform-avm"
-  clusterName = "aksterraformavm"
-  tags = {
-    scenario = "aks-terraform-avm"
-  }
+resource "azurerm_resource_group" "aks" {
+  name     = var.group
+  location = var.location
+  tags     = var.tags
 }
 
-resource "azurerm_resource_group" "this" {
-  name     = local.group
-  location = local.location
-  tags     = local.tags
-}
-
-resource "azurerm_virtual_network" "this" {
-  name                = "vnet-${local.clusterName}"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
+resource "azurerm_virtual_network" "aks" {
+  name                = "vnet-${var.cluster_name}"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
   address_space       = ["10.0.0.0/16"]
-  tags                = local.tags
+  tags                = var.tags
 }
 
 resource "azurerm_subnet" "nodes" {
   name                 = "snet-aks-nodes"
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.this.name
+  resource_group_name  = azurerm_resource_group.aks.name
+  virtual_network_name = azurerm_virtual_network.aks.name
   address_prefixes     = ["10.0.0.0/22"]
 }
 
 resource "azurerm_subnet" "apiServer" {
   name                 = "snet-aks-api-server"
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.this.name
+  resource_group_name  = azurerm_resource_group.aks.name
+  virtual_network_name = azurerm_virtual_network.aks.name
   address_prefixes     = ["10.0.4.0/28"]
 
   delegation {
@@ -46,20 +37,20 @@ resource "azurerm_subnet" "apiServer" {
 
 resource "azurerm_subnet" "bastion" {
   name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.this.name
+  resource_group_name  = azurerm_resource_group.aks.name
+  virtual_network_name = azurerm_virtual_network.aks.name
   address_prefixes     = ["10.0.5.0/26"]
 }
 
 resource "azurerm_user_assigned_identity" "aks" {
-  name                = "id-${local.clusterName}"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  tags                = local.tags
+  name                = "id-${var.cluster_name}"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
+  tags                = var.tags
 }
 
 resource "azurerm_role_assignment" "aksNetworkContributor" {
-  scope                = azurerm_virtual_network.this.id
+  scope                = azurerm_virtual_network.aks.id
   role_definition_name = "Network Contributor"
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
   principal_type       = "ServicePrincipal"
@@ -69,9 +60,9 @@ module "aks" {
   source  = "Azure/avm-res-containerservice-managedcluster/azurerm"
   version = "0.8.3"
 
-  name      = local.clusterName
-  location  = azurerm_resource_group.this.location
-  parent_id = azurerm_resource_group.this.id
+  name      = var.cluster_name
+  location  = azurerm_resource_group.aks.location
+  parent_id = azurerm_resource_group.aks.id
 
   kubernetes_version    = "1.36"
   public_network_access = "Disabled"
@@ -114,6 +105,9 @@ module "aks" {
         app_routing_istio = {
           mode = "Enabled"
         }
+      }
+      nginx = {
+        default_ingress_controller_type = "None"
       }
     }
   }
@@ -159,30 +153,30 @@ module "aks" {
     enable_azure_rbac = true
   }
 
-  tags = local.tags
+  tags = var.tags
 
   depends_on = [azurerm_role_assignment.aksNetworkContributor]
 }
 
 resource "azurerm_public_ip" "bastion" {
-  name                = "pip-bastion-${local.clusterName}"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
+  name                = "pip-bastion-${var.cluster_name}"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
-  tags                = local.tags
+  tags                = var.tags
 }
 
-resource "azurerm_bastion_host" "this" {
-  name                = "bas-${local.clusterName}"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
+resource "azurerm_bastion_host" "aks" {
+  name                = "bas-${var.cluster_name}"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
   sku                 = "Standard"
   tunneling_enabled   = true
   ip_connect_enabled  = true
   zones               = ["1", "2", "3"]
-  tags                = local.tags
+  tags                = var.tags
 
   ip_configuration {
     name                 = "configuration"
