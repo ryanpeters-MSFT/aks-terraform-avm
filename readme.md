@@ -11,6 +11,7 @@ This sample deploys an AKS Standard cluster by using version `0.8.3` of the [AKS
 - Application Routing with the managed Gateway API and Istio implementation
 - Three-zone, three-node `system` pool tainted `CriticalAddonsOnly=true:NoSchedule`
 - Three-zone `appspool` user pool, initially three nodes, autoscaling from two to six, tainted `workload=apps:NoSchedule`
+- Two-node `testpool` user pool using the AKS `VirtualMachines` agent pool type and a manual scale profile
 - Standard Azure Bastion with native client tunneling and no jumpbox
 - A user-assigned AKS control-plane identity with Network Contributor access to the VNet
 
@@ -19,7 +20,7 @@ This sample deploys an AKS Standard cluster by using version `0.8.3` of the [AKS
 - Terraform 1.11 or later
 - Azure CLI signed in to the target subscription
 - Permission to create the resources and role assignment
-- Sufficient Central US quota for up to nine `Standard_D4ds_v5` VMs during normal autoscaling, plus temporary upgrade surge capacity
+- Sufficient Central US quota for up to eleven `Standard_D4ds_v5` VMs during normal autoscaling, plus temporary upgrade surge capacity
 - Azure CLI 2.73.0 or later for API Server VNet Integration workflows
 
 Kubernetes versions and VM SKU capacity vary by subscription and region. Confirm that AKS `1.36` and `Standard_D4ds_v5` are available in Central US before applying.
@@ -70,7 +71,7 @@ kubectl get nodes -o wide
 ## References
 
 - [AKS Azure Verified Module](https://github.com/Azure/terraform-azurerm-avm-res-containerservice-managedcluster)
-- [Module Catelog](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/)
+- [Module Catalog](https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/)
 - [`avm-res-containerservice-managedcluster`](https://registry.terraform.io/modules/Azure/avm-res-containerservice-managedcluster/azurerm/latest)
 - [API Server VNet Integration](https://learn.microsoft.com/azure/aks/api-server-vnet-integration)
 - [Azure CNI powered by Cilium](https://learn.microsoft.com/azure/aks/azure-cni-powered-by-cilium)

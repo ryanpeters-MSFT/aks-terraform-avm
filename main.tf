@@ -64,8 +64,12 @@ module "aks" {
   location  = azurerm_resource_group.aks.location
   parent_id = azurerm_resource_group.aks.id
 
-  kubernetes_version    = "1.36"
+  kubernetes_version    = "1.36.3"
   public_network_access = "Disabled"
+
+  addon_profile_azure_policy = {
+    enabled = true
+  }
 
   managed_identities = {
     user_assigned_resource_ids = [azurerm_user_assigned_identity.aks.id]
@@ -117,7 +121,7 @@ module "aks" {
     count_of             = 3
     vm_size              = "Standard_D4ds_v5"
     availability_zones   = ["1", "2", "3"]
-    orchestrator_version = "1.36"
+    orchestrator_version = "1.36.3"
     vnet_subnet_id       = azurerm_subnet.nodes.id
     node_taints          = ["CriticalAddonsOnly=true:NoSchedule"]
     upgrade_settings = {
@@ -135,7 +139,7 @@ module "aks" {
       enable_auto_scaling  = true
       vm_size              = "Standard_D4ds_v5"
       availability_zones   = ["1", "2", "3"]
-      orchestrator_version = "1.36"
+      orchestrator_version = "1.36.3"
       vnet_subnet_id       = azurerm_subnet.nodes.id
       node_labels = {
         workload = "apps"
@@ -143,6 +147,27 @@ module "aks" {
       node_taints = ["workload=apps:NoSchedule"]
       upgrade_settings = {
         max_surge = "33%"
+      }
+    }
+    testpool = {
+      name                 = "testpool"
+      type                 = "VirtualMachines"
+      mode                 = "User"
+      orchestrator_version = "1.36.3"
+      vnet_subnet_id       = azurerm_subnet.nodes.id
+      node_labels = {
+        workload = "test"
+      }
+      upgrade_settings = {
+        max_surge = "33%"
+      }
+      virtual_machines_profile = {
+        scale = {
+          manual = [{
+            size  = "Standard_D4ds_v5"
+            count = 2
+          }]
+        }
       }
     }
   }
@@ -165,7 +190,10 @@ resource "azurerm_public_ip" "bastion" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
-  tags                = var.tags
+  ip_tags = {
+    FirstPartyUsage = "/Unprivileged"
+  }
+  tags = var.tags
 }
 
 resource "azurerm_bastion_host" "aks" {
