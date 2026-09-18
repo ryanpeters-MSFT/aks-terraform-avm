@@ -163,10 +163,16 @@ module "aks" {
       }
       virtual_machines_profile = {
         scale = {
-          manual = [{
-            size  = "Standard_D4ds_v5"
-            count = 2
-          }]
+          manual = [
+            {
+              size  = "Standard_D4ds_v5"
+              count = 2
+            },
+            {
+              size  = "Standard_D8ds_v5"
+              count = 1
+            }
+          ]
         }
       }
     }
