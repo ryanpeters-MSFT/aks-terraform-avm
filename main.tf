@@ -12,43 +12,6 @@ resource "azurerm_virtual_network" "aks" {
   tags                = var.tags
 }
 
-resource "azurerm_subnet" "nodes" {
-  name                 = "snet-aks-nodes"
-  resource_group_name  = azurerm_resource_group.aks.name
-  virtual_network_name = azurerm_virtual_network.aks.name
-  address_prefixes     = ["10.0.0.0/22"]
-}
-
-resource "azurerm_subnet" "apiServer" {
-  name                 = "snet-aks-api-server"
-  resource_group_name  = azurerm_resource_group.aks.name
-  virtual_network_name = azurerm_virtual_network.aks.name
-  address_prefixes     = ["10.0.4.0/28"]
-
-  delegation {
-    name = "aks-api-server"
-
-    service_delegation {
-      name    = "Microsoft.ContainerService/managedClusters"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-}
-
-resource "azurerm_subnet" "bastion" {
-  name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.aks.name
-  virtual_network_name = azurerm_virtual_network.aks.name
-  address_prefixes     = ["10.0.5.0/26"]
-}
-
-resource "azurerm_subnet" "privateEndpoints" {
-  name                 = "snet-private-endpoints"
-  resource_group_name  = azurerm_resource_group.aks.name
-  virtual_network_name = azurerm_virtual_network.aks.name
-  address_prefixes     = ["10.0.5.64/27"]
-}
-
 resource "azurerm_network_security_group" "nodes" {
   name                = "nsg-aks-nodes"
   location            = azurerm_resource_group.aks.location
@@ -173,24 +136,71 @@ resource "azurerm_network_security_group" "bastion" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "nodes" {
-  subnet_id                 = azurerm_subnet.nodes.id
-  network_security_group_id = azurerm_network_security_group.nodes.id
+resource "azapi_resource" "nodesSubnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  name      = "snet-aks-nodes"
+  parent_id = azurerm_virtual_network.aks.id
+
+  body = {
+    properties = {
+      addressPrefix = "10.0.0.0/22"
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.nodes.id
+      }
+    }
+  }
 }
 
-resource "azurerm_subnet_network_security_group_association" "apiServer" {
-  subnet_id                 = azurerm_subnet.apiServer.id
-  network_security_group_id = azurerm_network_security_group.apiServer.id
+resource "azapi_resource" "apiServerSubnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  name      = "snet-aks-api-server"
+  parent_id = azurerm_virtual_network.aks.id
+
+  body = {
+    properties = {
+      addressPrefix = "10.0.4.0/28"
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.apiServer.id
+      }
+      delegations = [{
+        name = "aks-api-server"
+        properties = {
+          serviceName = "Microsoft.ContainerService/managedClusters"
+        }
+      }]
+    }
+  }
 }
 
-resource "azurerm_subnet_network_security_group_association" "bastion" {
-  subnet_id                 = azurerm_subnet.bastion.id
-  network_security_group_id = azurerm_network_security_group.bastion.id
+resource "azapi_resource" "bastionSubnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  name      = "AzureBastionSubnet"
+  parent_id = azurerm_virtual_network.aks.id
+
+  body = {
+    properties = {
+      addressPrefix = "10.0.5.0/26"
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.bastion.id
+      }
+    }
+  }
 }
 
-resource "azurerm_subnet_network_security_group_association" "privateEndpoints" {
-  subnet_id                 = azurerm_subnet.privateEndpoints.id
-  network_security_group_id = azurerm_network_security_group.privateEndpoints.id
+resource "azapi_resource" "privateEndpointsSubnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  name      = "snet-private-endpoints"
+  parent_id = azurerm_virtual_network.aks.id
+
+  body = {
+    properties = {
+      addressPrefix                  = "10.0.5.64/27"
+      privateEndpointNetworkPolicies = "Disabled"
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.privateEndpoints.id
+      }
+    }
+  }
 }
 
 resource "azurerm_user_assigned_identity" "aks" {
@@ -243,7 +253,7 @@ resource "azurerm_private_endpoint" "acr" {
   name                = "pe-${azurerm_container_registry.aks.name}"
   location            = azurerm_resource_group.aks.location
   resource_group_name = azurerm_resource_group.aks.name
-  subnet_id           = azurerm_subnet.privateEndpoints.id
+  subnet_id           = azapi_resource.privateEndpointsSubnet.id
   tags                = var.tags
 
   private_service_connection {
@@ -298,7 +308,7 @@ module "aks" {
     enable_private_cluster_public_fqdn = false
     enable_vnet_integration            = true
     private_dns_zone                   = "system"
-    subnet_id                          = azurerm_subnet.apiServer.id
+    subnet_id                          = azapi_resource.apiServerSubnet.id
   }
 
   network_profile = {
@@ -335,7 +345,7 @@ module "aks" {
     vm_size              = "Standard_D4ds_v5"
     availability_zones   = ["1", "2", "3"]
     orchestrator_version = "1.36.3"
-    vnet_subnet_id       = azurerm_subnet.nodes.id
+    vnet_subnet_id       = azapi_resource.nodesSubnet.id
     node_taints          = ["CriticalAddonsOnly=true:NoSchedule"]
     upgrade_settings = {
       max_surge = "33%"
@@ -353,7 +363,7 @@ module "aks" {
       vm_size              = "Standard_D4ds_v5"
       availability_zones   = ["1", "2", "3"]
       orchestrator_version = "1.36.3"
-      vnet_subnet_id       = azurerm_subnet.nodes.id
+      vnet_subnet_id       = azapi_resource.nodesSubnet.id
       node_labels = {
         workload = "apps"
       }
@@ -431,7 +441,7 @@ resource "azapi_resource" "testpool" {
       mode                = "User"
       type                = "VirtualMachines"
       orchestratorVersion = "1.36.3"
-      vnetSubnetID        = azurerm_subnet.nodes.id
+      vnetSubnetID        = azapi_resource.nodesSubnet.id
       nodeLabels = {
         workload = "test"
       }
@@ -489,7 +499,7 @@ resource "azurerm_bastion_host" "aks" {
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = azurerm_subnet.bastion.id
+    subnet_id            = azapi_resource.bastionSubnet.id
     public_ip_address_id = azurerm_public_ip.bastion.id
   }
 }
