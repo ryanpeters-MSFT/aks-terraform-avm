@@ -4,6 +4,9 @@ metadata:
   name: workload
 spec:
   gatewayClassName: approuting-istio
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
   listeners:
     - name: http
       protocol: HTTP
