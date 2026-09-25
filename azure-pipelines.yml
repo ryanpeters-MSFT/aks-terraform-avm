@@ -39,7 +39,7 @@ steps:
           -backend-config="key=aks/terraform.tfstate"
 
         terraform validate
-        terraform plan -input=false -out=tfplan
+        terraform plan -input=false -var='cluster_name=aksterraformrjp' -out=tfplan
         terraform apply -input=false -auto-approve tfplan
     env:
       ARM_OIDC_REQUEST_TOKEN: $(System.AccessToken)
