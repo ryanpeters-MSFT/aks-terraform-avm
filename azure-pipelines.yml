@@ -1,22 +1,45 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master
+  branches:
+    include:
+      - main
+
+pr: none
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
+  - checkout: self
 
+  - task: TerraformInstaller@1
+    displayName: Install Terraform
+    inputs:
+      terraformVersion: 'latest'
 
+  - task: AzureCLI@2
+    displayName: Terraform init, plan, and apply
+    inputs:
+      azureSubscription: 'AKS'
+      scriptType: bash
+      scriptLocation: inlineScript
+      workingDirectory: '$(Build.SourcesDirectory)'
+      inlineScript: |
+        set -euo pipefail
 
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+        export ARM_CLIENT_ID="$AZURESUBSCRIPTION_CLIENT_ID"
+        export ARM_TENANT_ID="$AZURESUBSCRIPTION_TENANT_ID"
+        export ARM_SUBSCRIPTION_ID="$(az account show --query id -o tsv)"
+        export ARM_OIDC_AZURE_SERVICE_CONNECTION_ID="$AZURESUBSCRIPTION_SERVICE_CONNECTION_ID"
+        export ARM_USE_OIDC=true
+        export ARM_USE_AZUREAD=true
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+        terraform init -input=false \
+          -backend-config="storage_account_name=terraformstaterjp" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=aks/terraform.tfstate"
+
+        terraform validate
+        terraform plan -input=false -out=tfplan
+        terraform apply -input=false -auto-approve tfplan
+    env:
+      ARM_OIDC_REQUEST_TOKEN: $(System.AccessToken)
