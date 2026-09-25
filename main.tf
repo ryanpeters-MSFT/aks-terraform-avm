@@ -481,9 +481,9 @@ resource "azurerm_public_ip" "bastion" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
-  ip_tags = {
-    FirstPartyUsage = "/Unprivileged"
-  }
+  # ip_tags = {
+  #   FirstPartyUsage = "/Unprivileged"
+  # }
   tags = var.tags
 }
 
