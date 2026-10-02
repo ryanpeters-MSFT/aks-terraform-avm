@@ -4,6 +4,15 @@ resource "azurerm_resource_group" "aks" {
   tags     = var.tags
 }
 
+resource "azurerm_log_analytics_workspace" "law" {
+  name                = "akslogs"
+  location            = azurerm_resource_group.aks.location
+  resource_group_name = azurerm_resource_group.aks.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  tags                = var.tags
+}
+
 resource "azurerm_virtual_network" "aks" {
   name                = "vnet-${var.cluster_name}"
   location            = azurerm_resource_group.aks.location
@@ -282,6 +291,14 @@ module "aks" {
 
   addon_profile_azure_policy = {
     enabled = true
+  }
+
+  addon_profile_oms_agent = {
+    enabled = true
+    config = {
+      log_analytics_workspace_resource_id = azurerm_log_analytics_workspace.law.id
+      use_aad_auth                        = true
+    }
   }
 
   managed_identities = {
