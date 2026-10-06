@@ -33,10 +33,10 @@ output "workload_identity_principal_id" {
   value       = azurerm_user_assigned_identity.workload.principal_id
 }
 
-output "bastion_id" {
-  description = "Resource ID of the Azure Bastion host used by az aks bastion."
-  value       = azurerm_bastion_host.aks.id
-}
+# output "bastion_id" {
+#   description = "Resource ID of the Azure Bastion host used by az aks bastion."
+#   value       = azurerm_bastion_host.aks.id
+# }
 
 output "acr_name" {
   description = "Name of the Azure Container Registry."

@@ -42,108 +42,108 @@ resource "azurerm_network_security_group" "privateEndpoints" {
   tags                = var.tags
 }
 
-resource "azurerm_network_security_group" "bastion" {
-  name                = "nsg-bastion"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  tags                = var.tags
+# resource "azurerm_network_security_group" "bastion" {
+#   name                = "nsg-bastion"
+#   location            = azurerm_resource_group.aks.location
+#   resource_group_name = azurerm_resource_group.aks.name
+#   tags                = var.tags
 
-  security_rule {
-    name                       = "AllowHttpsInbound"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "Internet"
-    destination_address_prefix = "*"
-  }
+#   security_rule {
+#     name                       = "AllowHttpsInbound"
+#     priority                   = 100
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "443"
+#     source_address_prefix      = "Internet"
+#     destination_address_prefix = "*"
+#   }
 
-  security_rule {
-    name                       = "AllowGatewayManagerInbound"
-    priority                   = 110
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "GatewayManager"
-    destination_address_prefix = "*"
-  }
+#   security_rule {
+#     name                       = "AllowGatewayManagerInbound"
+#     priority                   = 110
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "443"
+#     source_address_prefix      = "GatewayManager"
+#     destination_address_prefix = "*"
+#   }
 
-  security_rule {
-    name                       = "AllowAzureLoadBalancerInbound"
-    priority                   = 120
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "AzureLoadBalancer"
-    destination_address_prefix = "*"
-  }
+#   security_rule {
+#     name                       = "AllowAzureLoadBalancerInbound"
+#     priority                   = 120
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "443"
+#     source_address_prefix      = "AzureLoadBalancer"
+#     destination_address_prefix = "*"
+#   }
 
-  security_rule {
-    name                       = "AllowBastionHostCommunicationInbound"
-    priority                   = 130
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["8080", "5701"]
-    source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "VirtualNetwork"
-  }
+#   security_rule {
+#     name                       = "AllowBastionHostCommunicationInbound"
+#     priority                   = 130
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_ranges    = ["8080", "5701"]
+#     source_address_prefix      = "VirtualNetwork"
+#     destination_address_prefix = "VirtualNetwork"
+#   }
 
-  security_rule {
-    name                       = "AllowSshRdpOutbound"
-    priority                   = 100
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["22", "3389"]
-    source_address_prefix      = "*"
-    destination_address_prefix = "VirtualNetwork"
-  }
+#   security_rule {
+#     name                       = "AllowSshRdpOutbound"
+#     priority                   = 100
+#     direction                  = "Outbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_ranges    = ["22", "3389"]
+#     source_address_prefix      = "*"
+#     destination_address_prefix = "VirtualNetwork"
+#   }
 
-  security_rule {
-    name                       = "AllowAzureCloudOutbound"
-    priority                   = 110
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "*"
-    destination_address_prefix = "AzureCloud"
-  }
+#   security_rule {
+#     name                       = "AllowAzureCloudOutbound"
+#     priority                   = 110
+#     direction                  = "Outbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "443"
+#     source_address_prefix      = "*"
+#     destination_address_prefix = "AzureCloud"
+#   }
 
-  security_rule {
-    name                       = "AllowBastionCommunicationOutbound"
-    priority                   = 120
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["8080", "5701"]
-    source_address_prefix      = "VirtualNetwork"
-    destination_address_prefix = "VirtualNetwork"
-  }
+#   security_rule {
+#     name                       = "AllowBastionCommunicationOutbound"
+#     priority                   = 120
+#     direction                  = "Outbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_ranges    = ["8080", "5701"]
+#     source_address_prefix      = "VirtualNetwork"
+#     destination_address_prefix = "VirtualNetwork"
+#   }
 
-  security_rule {
-    name                       = "AllowHttpOutbound"
-    priority                   = 130
-    direction                  = "Outbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "Internet"
-  }
-}
+#   security_rule {
+#     name                       = "AllowHttpOutbound"
+#     priority                   = 130
+#     direction                  = "Outbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "80"
+#     source_address_prefix      = "*"
+#     destination_address_prefix = "Internet"
+#   }
+# }
 
 resource "azapi_resource" "nodesSubnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
@@ -157,6 +157,25 @@ resource "azapi_resource" "nodesSubnet" {
         id = azurerm_network_security_group.nodes.id
       }
     }
+  }
+}
+
+resource "azapi_resource" "systemNodesSubnet" {
+  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+  name      = "snet-aks-system-nodes"
+  parent_id = azurerm_virtual_network.aks.id
+
+  body = {
+    properties = {
+      addressPrefix = "10.0.5.0/26"
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.nodes.id
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [body.properties.delegations]
   }
 }
 
@@ -181,20 +200,20 @@ resource "azapi_resource" "apiServerSubnet" {
   }
 }
 
-resource "azapi_resource" "bastionSubnet" {
-  type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
-  name      = "AzureBastionSubnet"
-  parent_id = azurerm_virtual_network.aks.id
+# resource "azapi_resource" "bastionSubnet" {
+#   type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
+#   name      = "AzureBastionSubnet"
+#   parent_id = azurerm_virtual_network.aks.id
 
-  body = {
-    properties = {
-      addressPrefix = "10.0.5.0/26"
-      networkSecurityGroup = {
-        id = azurerm_network_security_group.bastion.id
-      }
-    }
-  }
-}
+#   body = {
+#     properties = {
+#       addressPrefix = "10.0.5.0/26"
+#       networkSecurityGroup = {
+#         id = azurerm_network_security_group.bastion.id
+#       }
+#     }
+#   }
+# }
 
 resource "azapi_resource" "privateEndpointsSubnet" {
   type      = "Microsoft.Network/virtualNetworks/subnets@2024-05-01"
@@ -286,13 +305,6 @@ module "aks" {
   location  = azurerm_resource_group.aks.location
   parent_id = azurerm_resource_group.aks.id
 
-  kubernetes_version    = "1.36.3"
-  public_network_access = "Disabled"
-
-  addon_profile_azure_policy = {
-    enabled = true
-  }
-
   addon_profile_oms_agent = {
     enabled = true
     config = {
@@ -305,123 +317,29 @@ module "aks" {
     user_assigned_resource_ids = [azurerm_user_assigned_identity.aks.id]
   }
 
-  oidc_issuer_profile = {
-    enabled = true
-  }
-
-  security_profile = {
-    workload_identity = {
-      enabled = true
-    }
-  }
-
   sku = {
-    name = "Base"
-    tier = "Standard"
+    name = "Automatic"
+  }
+
+  resource_types = {
+    containerservice_managed_clusters = "Microsoft.ContainerService/managedClusters@2026-03-02-preview"
   }
 
   api_server_access_profile = {
     enable_private_cluster             = true
     enable_private_cluster_public_fqdn = false
-    enable_vnet_integration            = true
-    private_dns_zone                   = "system"
-    subnet_id                          = azapi_resource.apiServerSubnet.id
+    subnet_id = azapi_resource.apiServerSubnet.id
   }
 
   network_profile = {
-    dns_service_ip      = "10.2.0.10"
-    network_dataplane   = "cilium"
-    network_plugin      = "azure"
-    network_plugin_mode = "overlay"
-    network_policy      = "cilium"
-    outbound_type       = "loadBalancer"
-    pod_cidr            = "10.244.0.0/16"
-    service_cidr        = "10.2.0.0/16"
+    dns_service_ip = "10.2.0.10"
+    service_cidr   = "10.2.0.0/16"
   }
 
-  ingress_profile = {
-    gateway_api = {
-      installation = "Standard"
-    }
-    web_app_routing = {
-      enabled = true
-      gateway_api_implementations = {
-        app_routing_istio = {
-          mode = "Enabled"
-        }
-      }
-      nginx = {
-        default_ingress_controller_type = "None"
-      }
-    }
-  }
-
-  default_agent_pool = {
-    name                 = "system"
-    count_of             = 3
-    vm_size              = "Standard_D4ds_v5"
-    availability_zones   = ["1", "2", "3"]
-    orchestrator_version = "1.36.3"
-    vnet_subnet_id       = azapi_resource.nodesSubnet.id
-    node_taints          = ["CriticalAddonsOnly=true:NoSchedule"]
-    upgrade_settings = {
-      max_surge = "33%"
-    }
-  }
-
-  agent_pools = {
-    apps = {
-      name                 = "appspool"
-      mode                 = "User"
-      count_of             = 3
-      min_count            = 2
-      max_count            = 6
-      enable_auto_scaling  = true
-      vm_size              = "Standard_D4ds_v5"
-      availability_zones   = ["1", "2", "3"]
-      orchestrator_version = "1.36.3"
-      vnet_subnet_id       = azapi_resource.nodesSubnet.id
-      node_labels = {
-        workload = "apps"
-      }
-      node_taints = ["workload=apps:NoSchedule"]
-      upgrade_settings = {
-        max_surge = "33%"
-      }
-    }
-    # testpool = {
-    #   name                 = "testpool"
-    #   type                 = "VirtualMachines"
-    #   mode                 = "User"
-    #   orchestrator_version = "1.36.3"
-    #   vnet_subnet_id       = azurerm_subnet.nodes.id
-    #   node_labels = {
-    #     workload = "test"
-    #   }
-    #   upgrade_settings = {
-    #     max_surge = "33%"
-    #   }
-    #   virtual_machines_profile = {
-    #     scale = {
-    #       manual = [
-    #         {
-    #           size  = "Standard_D4ds_v5"
-    #           count = 2
-    #         },
-    #         {
-    #           size  = "Standard_D8ds_v5"
-    #           count = 1
-    #         }
-    #       ]
-    #     }
-    #   }
-    # }
-  }
-
-  enable_rbac = true
-  aad_profile = {
-    managed           = true
-    enable_azure_rbac = true
+  hosted_system_profile = {
+    enabled               = true
+    node_subnet_id        = azapi_resource.nodesSubnet.id
+    system_node_subnet_id = azapi_resource.systemNodesSubnet.id
   }
 
   tags = var.tags
@@ -448,75 +366,32 @@ resource "azurerm_role_assignment" "aksAcrPull" {
   }
 }
 
-resource "azapi_resource" "testpool" {
-  type      = "Microsoft.ContainerService/managedClusters/agentPools@2026-01-02-preview"
-  name      = "testpool"
-  parent_id = module.aks.resource_id
+# resource "azurerm_public_ip" "bastion" {
+#   name                = "pip-bastion-${var.cluster_name}"
+#   location            = azurerm_resource_group.aks.location
+#   resource_group_name = azurerm_resource_group.aks.name
+#   allocation_method   = "Static"
+#   sku                 = "Standard"
+#   zones               = ["1", "2", "3"]
+#   # ip_tags = {
+#   #   FirstPartyUsage = "/Unprivileged"
+#   # }
+#   tags = var.tags
+# }
 
-  body = {
-    properties = {
-      mode                = "User"
-      type                = "VirtualMachines"
-      orchestratorVersion = "1.36.3"
-      vnetSubnetID        = azapi_resource.nodesSubnet.id
-      nodeLabels = {
-        workload = "test"
-      }
-      upgradeSettings = {
-        maxSurge       = "33%"
-        maxUnavailable = "0"
-      }
-      virtualMachinesProfile = {
-        scale = {
-          autoscale = {
-            size     = "Standard_D4ds_v5"
-            minCount = 1
-            maxCount = 4
-          }
-        }
-      }
-    }
-  }
+# resource "azurerm_bastion_host" "aks" {
+#   name                = "bas-${var.cluster_name}"
+#   location            = azurerm_resource_group.aks.location
+#   resource_group_name = azurerm_resource_group.aks.name
+#   sku                 = "Standard"
+#   tunneling_enabled   = true
+#   ip_connect_enabled  = true
+#   zones               = ["1", "2", "3"]
+#   tags                = var.tags
 
-  ignore_missing_property   = true
-  ignore_null_property      = true
-  schema_validation_enabled = false
-
-  response_export_values = [
-    "properties.currentOrchestratorVersion",
-    "properties.nodeImageVersion",
-    "properties.provisioningState",
-    "properties.virtualMachinesProfile.scale",
-    "type"
-  ]
-}
-
-resource "azurerm_public_ip" "bastion" {
-  name                = "pip-bastion-${var.cluster_name}"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["1", "2", "3"]
-  # ip_tags = {
-  #   FirstPartyUsage = "/Unprivileged"
-  # }
-  tags = var.tags
-}
-
-resource "azurerm_bastion_host" "aks" {
-  name                = "bas-${var.cluster_name}"
-  location            = azurerm_resource_group.aks.location
-  resource_group_name = azurerm_resource_group.aks.name
-  sku                 = "Standard"
-  tunneling_enabled   = true
-  ip_connect_enabled  = true
-  zones               = ["1", "2", "3"]
-  tags                = var.tags
-
-  ip_configuration {
-    name                 = "configuration"
-    subnet_id            = azapi_resource.bastionSubnet.id
-    public_ip_address_id = azurerm_public_ip.bastion.id
-  }
-}
+#   ip_configuration {
+#     name                 = "configuration"
+#     subnet_id            = azapi_resource.bastionSubnet.id
+#     public_ip_address_id = azurerm_public_ip.bastion.id
+#   }
+# }
